@@ -49,24 +49,24 @@ public class MainActivity extends AppCompatActivity {
         userArrayList = new ArrayList<>();
 
         //get all Users
-        ParseQuery<ParseUser> userParseQuery = ParseQuery.getQuery("User");
+        ParseQuery<ParseUser> userParseQuery = ParseQuery.getQuery("_User");
 
 
         userParseQuery.findInBackground(new FindCallback<ParseUser>(){
             @Override
-            public void done(List<ParseUser> objects, ParseException e){
+            public void done(List<ParseUser> userList, ParseException e){
 
                 if(e == null){
 
-                    Log.i("findInBackground", "Retrieved " + objects.size() + " objects");
+                    Log.i("findInBackground", "Retrieved " + userList.size() + " objects");
 
-                    if(objects.size() > 0){
+                    if(userList.size() > 0){
 
-                        for(ParseObject object : objects){
+                        for(ParseUser user : userList){
 
-                            Log.i("QueryResults", object.toString());
+                            Log.i("QueryResults", user.getUsername());
 
-                            userArrayList.add(object.toString());
+                            userArrayList.add(user.getUsername());
 
 
                         }
