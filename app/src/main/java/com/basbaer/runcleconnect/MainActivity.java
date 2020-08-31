@@ -1,11 +1,16 @@
 package com.basbaer.runcleconnect;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.basbaer.runcleconnect.databinding.ActivityMainBinding;
@@ -30,6 +35,36 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> userArrayList;
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        MenuInflater menuInflater = getMenuInflater();
+
+        menuInflater.inflate(R.menu.main_menu, menu);
+
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    //sets the options for the menu
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()){
+            case R.id.logout:
+
+                ParseUser.logOut();
+
+                LogInActivity.updateSharedPreferences(false, null, null);
+
+                Intent intent = new Intent(getApplicationContext(), LogInActivity.class);
+
+                startActivity(intent);
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
 
     @Override
@@ -45,24 +80,26 @@ public class MainActivity extends AppCompatActivity {
         //getting current User
         currentUser = ParseUser.getCurrentUser();
 
+
         //setting up ArrayList for users
         userArrayList = new ArrayList<>();
+
 
         //get all Users
         ParseQuery<ParseUser> userParseQuery = ParseQuery.getQuery("_User");
 
 
-        userParseQuery.findInBackground(new FindCallback<ParseUser>(){
+        userParseQuery.findInBackground(new FindCallback<ParseUser>() {
             @Override
-            public void done(List<ParseUser> userList, ParseException e){
+            public void done(List<ParseUser> userList, ParseException e) {
 
-                if(e == null){
+                if (e == null) {
 
                     Log.i("findInBackground", "Retrieved " + userList.size() + " objects");
 
-                    if(userList.size() > 0){
+                    if (userList.size() > 0) {
 
-                        for(ParseUser user : userList){
+                        for (ParseUser user : userList) {
 
                             Log.i("QueryResults", user.getUsername());
 
@@ -71,17 +108,17 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                     }
+                } else {
+                    e.printStackTrace();
                 }
 
-                userArrayList.add("Basti");
-                userArrayList.add("Bastian");
+
                 myAdapterForRecyclerView.notifyDataSetChanged();
 
             }
 
 
         });
-
 
 
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
@@ -97,13 +134,6 @@ public class MainActivity extends AppCompatActivity {
         //setting up the Adapter
         myAdapterForRecyclerView = new MyAdapter(userArrayList);
         usersRecyclerView.setAdapter(myAdapterForRecyclerView);
-
-
-
-
-
-
-
 
 
     }
