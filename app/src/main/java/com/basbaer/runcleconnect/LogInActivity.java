@@ -203,6 +203,7 @@ public class LogInActivity extends AppCompatActivity implements View.OnKeyListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_in);
 
+        /*
         //just for better workflow
         ParseUser currentUser = ParseUser.getCurrentUser();
         if (currentUser != null) {
@@ -235,6 +236,8 @@ public class LogInActivity extends AppCompatActivity implements View.OnKeyListen
             startActivity(intent);
 
         }
+
+         */
 
 
         //speichert den Log-In Modus ab

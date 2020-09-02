@@ -5,6 +5,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.parse.ParseUser;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
 import static android.content.Context.MODE_PRIVATE;
 import static android.database.sqlite.SQLiteDatabase.openOrCreateDatabase;
 
@@ -27,7 +35,7 @@ public class UsersDb {
             usersDatabase = context.openOrCreateDatabase("usersDb", MODE_PRIVATE, null);
 
             //creates the table with the coloums and their corresponding data types
-            usersDatabase.execSQL("CREATE TABLE IF NOT EXISTS usersInfo (id VARCHAR, username VARCHAR, following INT(1))");
+            usersDatabase.execSQL("CREATE TABLE IF NOT EXISTS usersInfo (id VARCHAR, username VARCHAR, follows VARCHAR)");
 
 
         } catch (Exception e) {
@@ -39,17 +47,25 @@ public class UsersDb {
 
     }
 
-    public static void insertUserIntoDb(String id, String username, boolean following) {
+    public static void insertUserIntoDb(String id, String username) {
 
 
-        String sqlCode = "INSERT INTO usersInfo (id, username, following) VALUES";
+        String sqlCode = "INSERT INTO usersInfo (id, username, follows) VALUES";
 
-        int followingInt;
-        if(following) { followingInt = 1; } else{followingInt = 0;}
+        JSONObject jsonObject = new JSONObject();
+
+        try {
+            jsonObject.put("followingAL", new JSONArray(new ArrayList<String>()));
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String arrayListString = jsonObject.toString();
 
 
         //adding the id and the Username to the sql code
-        sqlCode += " ('" + id + "', '" + username + "', " + followingInt + ")";
+        sqlCode += " ('" + id + "', '" + username + "', '" + arrayListString+ "')";
 
         usersDatabase.execSQL(sqlCode);
 
@@ -73,49 +89,33 @@ public class UsersDb {
 
     }
 
-    public static boolean getFollowingstatus(String id){
+    public static void updateFollowsAl(){
 
-        String sql = "SELECT * FROM usersInfo WHERE id = '" + id + "' LIMIT 1";
+        String sqlCode = "UPDATE usersInfo SET follows = ";
 
-        Cursor c = usersDatabase.rawQuery(sql, null);
+        JSONObject jsonObject = new JSONObject();
 
-        int followingIndex = c.getColumnIndex("following");
+        try {
+            jsonObject.put("followingAL", new JSONArray(MainActivity.userFollows));
 
-        c.moveToFirst();
-
-
-        if(c.getInt(followingIndex) == 1){
-            return true;
-        }else{
-            return false;
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
-    }
+        String arrayListString = jsonObject.toString();
 
-    public static void changeFollowingStatus(String id){
+        //getting the id of the current user
+        String id = ParseUser.getCurrentUser().getObjectId();
 
-        String sql = "SELECT * FROM usersInfo WHERE id = '" + id + "' LIMIT 1";
+        //adding the id and the Username to the sql code
+        sqlCode += " '"
+                + arrayListString
+                + "' WHERE id = '"
+                + id
+                + "'";
 
-        Cursor c = usersDatabase.rawQuery(sql, null);
+        usersDatabase.execSQL(sqlCode);
 
-        int followingIndex = c.getColumnIndex("following");
-
-        c.moveToFirst();
-
-        if(c.getInt(followingIndex) == 1){
-
-            String sqlUpdate = "UPDATE usersInfo SET following = 0 WHERE id = '"
-                    + id
-                    +"'";
-
-            usersDatabase.execSQL(sqlUpdate);
-
-        }else{
-            String sqlUpdate = "UPDATE usersInfo SET following = 1 WHERE id = '"
-                    + id
-                    + "'";
-            usersDatabase.execSQL(sqlUpdate);
-        }
 
     }
 

@@ -1,24 +1,33 @@
 package com.basbaer.runcleconnect;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.basbaer.runcleconnect.databinding.ActivityMainBinding;
+import com.basbaer.runcleconnect.databinding.AlertDialogBinding;
 import com.parse.FindCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,23 +62,70 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch (item.getItemId()){
-            case R.id.logout:
+        if(item.getItemId() == R.id.myFeed) {
 
-                ParseUser.logOut();
+            Intent intentToFeed = new Intent(getApplicationContext(), FeedActivity.class);
 
-                LogInActivity.updateSharedPreferences(false, null, null);
+            startActivity(intentToFeed);
 
-                Intent intent = new Intent(getApplicationContext(), LogInActivity.class);
+        }else if (item.getItemId() == R.id.sendTweet) {
 
-                startActivity(intent);
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
-            case R.id.sendTweet:
+            AlertDialogBinding alertDialogBinding = AlertDialogBinding.inflate(getLayoutInflater());
 
+            final EditText alertDialogEditText = alertDialogBinding.message;
+            Button alertDialogSendTweet = alertDialogBinding.sendTweet;
 
+            builder.setCancelable(true);
 
+            builder.setView(alertDialogBinding.getRoot());
+
+            final AlertDialog alertDialog = builder.create();
+
+            alertDialogSendTweet.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    ParseObject tweet = new ParseObject("Tweets");
+
+                    tweet.put("userId", currentUser.getObjectId());
+
+                    tweet.put("message", alertDialogEditText.getText().toString());
+
+                    tweet.saveInBackground(new SaveCallback() {
+                        @Override
+                        public void done(ParseException e) {
+                            if(e == null){
+
+                                Toast.makeText(MainActivity.this, "Tweet was sent", Toast.LENGTH_SHORT).show();
+
+                            }else{
+
+                                Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+
+                            }
+                        }
+                    });
+
+                    alertDialog.dismiss();
+                }
+            });
+
+            alertDialog.show();
+
+        }else if(item.getItemId() == R.id.logout) {
+
+            ParseUser.logOut();
+
+            LogInActivity.updateSharedPreferences(false, null, null);
+
+            Intent intent = new Intent(getApplicationContext(), LogInActivity.class);
+
+            startActivity(intent);
 
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -89,18 +145,24 @@ public class MainActivity extends AppCompatActivity {
         currentUser = ParseUser.getCurrentUser();
 
         //setting up a SQLiteDatabase where the information are stored locally
-        usersDb = new UsersDb(getApplicationContext());
+        if(usersDb == null) {
+            usersDb = new UsersDb(getApplicationContext());
+        }
 
         //setting up AL for the id's the user follows
-        userFollows = new ArrayList<>();
-        if(MainActivity.currentUser.get("follows") != null) {
+        if(userFollows == null) {
+            userFollows = new ArrayList<>();
+            if (MainActivity.currentUser.get("follows") != null) {
 
-            MainActivity.userFollows = (ArrayList<String>) MainActivity.currentUser.get("follows");
+                MainActivity.userFollows = (ArrayList<String>) MainActivity.currentUser.get("follows");
 
+            }
         }
 
         //setting up ArrayList for users
-        userIdArrayList = new ArrayList<>();
+        if(userIdArrayList == null) {
+            userIdArrayList = new ArrayList<>();
+        }
 
 
         //get all Users
@@ -121,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                             userIdArrayList.add(user.getObjectId());
 
                             //inserting Users in the Db
-                            usersDb.insertUserIntoDb(user.getObjectId(), user.getUsername(), (boolean) user.get("following"));
+                            usersDb.insertUserIntoDb(user.getObjectId(), user.getUsername());
 
 
 

@@ -84,13 +84,24 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         //sets the text for the textView (=username)
         usernameTV.setText(UsersDb.getUsernameFromId(arrayList.get(position)));
 
-        //changes the icon if the user is following the other user
-        if (UsersDb.getFollowingstatus(arrayList.get(position))) {
+        //changes the checkbox for the users the current user follows
+        if(MainActivity.currentUser.get("follows") != null) {
 
-
-            hookIV.setImageDrawable(checkboxWithHook);
+            MainActivity.userFollows = (ArrayList<String>) MainActivity.currentUser.get("follows");
 
         }
+
+        for(String idstheUserFollows : MainActivity.userFollows){
+
+            if (arrayList.get(position).equals(idstheUserFollows)){
+
+                hookIV.setImageDrawable(checkboxWithHook);
+
+            }
+
+        }
+
+
 
 
         //you can also add a onClickListener, here with an intent to the 'UsersFeedActivity'
@@ -112,17 +123,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
             @Override
             public void onClick(View v) {
 
-                //update db
-                UsersDb.changeFollowingStatus(idOfTappedUser);
 
                 //update the ParseStatus
 
 
-                if(MainActivity.currentUser.get("follows") != null) {
 
-                    MainActivity.userFollows = (ArrayList<String>) MainActivity.currentUser.get("follows");
-
-                }
 
                 //Variable, die speichert, ob der user in der liste ist
                 boolean userIsInList = false;
@@ -158,6 +163,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
                     //save the updated list on parse
                     MainActivity.currentUser.put("follows", MainActivity.userFollows);
 
+                    MainActivity.currentUser.saveInBackground();
+
                     //adds the user
                 } else {
 
@@ -171,12 +178,18 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
                     //save the updated list on parse
                     MainActivity.currentUser.put("follows", MainActivity.userFollows);
 
+                    MainActivity.currentUser.saveInBackground();
+
                 }
 
             }
 
 
         });
+
+        //update db
+        UsersDb.updateFollowsAl();
+
     }
 
 
