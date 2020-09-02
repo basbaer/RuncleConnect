@@ -1,11 +1,11 @@
 package com.basbaer.runcleconnect;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -17,7 +17,6 @@ import com.basbaer.runcleconnect.databinding.ActivityMainBinding;
 import com.parse.FindCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
-import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
@@ -28,11 +27,15 @@ public class MainActivity extends AppCompatActivity {
 
 
     private ActivityMainBinding activityMainBinding;
-    ParseUser currentUser;
+    protected static ParseUser currentUser;
+    protected static ArrayList<String> userFollows;
     private RecyclerView usersRecyclerView;
     private RecyclerView.LayoutManager myLayoutManager;
     private RecyclerView.Adapter myAdapterForRecyclerView;
-    private ArrayList<String> userArrayList;
+    private ArrayList<String> userIdArrayList;
+    private UsersDb usersDb;
+
+
 
 
     @Override
@@ -61,6 +64,11 @@ public class MainActivity extends AppCompatActivity {
 
                 startActivity(intent);
 
+            case R.id.sendTweet:
+
+
+
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -80,9 +88,19 @@ public class MainActivity extends AppCompatActivity {
         //getting current User
         currentUser = ParseUser.getCurrentUser();
 
+        //setting up a SQLiteDatabase where the information are stored locally
+        usersDb = new UsersDb(getApplicationContext());
+
+        //setting up AL for the id's the user follows
+        userFollows = new ArrayList<>();
+        if(MainActivity.currentUser.get("follows") != null) {
+
+            MainActivity.userFollows = (ArrayList<String>) MainActivity.currentUser.get("follows");
+
+        }
 
         //setting up ArrayList for users
-        userArrayList = new ArrayList<>();
+        userIdArrayList = new ArrayList<>();
 
 
         //get all Users
@@ -95,15 +113,16 @@ public class MainActivity extends AppCompatActivity {
 
                 if (e == null) {
 
-                    Log.i("findInBackground", "Retrieved " + userList.size() + " objects");
 
                     if (userList.size() > 0) {
 
                         for (ParseUser user : userList) {
 
-                            Log.i("QueryResults", user.getUsername());
+                            userIdArrayList.add(user.getObjectId());
 
-                            userArrayList.add(user.getUsername());
+                            //inserting Users in the Db
+                            usersDb.insertUserIntoDb(user.getObjectId(), user.getUsername(), (boolean) user.get("following"));
+
 
 
                         }
@@ -132,8 +151,14 @@ public class MainActivity extends AppCompatActivity {
         usersRecyclerView.setLayoutManager(myLayoutManager);
 
         //setting up the Adapter
-        myAdapterForRecyclerView = new MyAdapter(userArrayList);
+        myAdapterForRecyclerView = new MyAdapter(userIdArrayList);
         usersRecyclerView.setAdapter(myAdapterForRecyclerView);
+
+
+
+
+
+
 
 
     }

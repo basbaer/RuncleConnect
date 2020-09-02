@@ -2,11 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
 
-    <item android:title="Settings"
-        android:id="@+id/settings"></item>
+    <item android:title="MyFeed"
+        android:id="@+id/myFeed"></item>
 
-    <item android:title="Help"
-        android:id="@+id/help"></item>
+    <item android:title="Send Tweet"
+        android:id="@+id/sendTweet"></item>
 
     <item android:title="LogOut"
         android:id="@+id/logout"></item>
